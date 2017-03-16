@@ -385,6 +385,7 @@ def pipeline(img, checkpoint=None):
                       [img.shape[1] * (.5 + mid_width / 2), img.shape[0] * height_pct],
                       [img.shape[1] * (.5 + box_width / 2), img.shape[0] * bottom_trim],
                       [img.shape[1] * (.5 - box_width / 2), img.shape[0] * bottom_trim]])
+    # print(src)
 
     # offset adjusts the shrinkage of the warped image - larger is shrunken more
     offset = img.shape[1] * 0.25
@@ -393,6 +394,7 @@ def pipeline(img, checkpoint=None):
                       [img.shape[1] - offset, 0],
                       [img.shape[1] - offset, img.shape[0]],
                       [offset, img.shape[0]]])
+    # print(dst)
 
     # Get perspective transformation matrix and its inverse for later use
     mat = cv2.getPerspectiveTransform(src, dst)
@@ -419,8 +421,9 @@ def pipeline(img, checkpoint=None):
     window_height = 80  # Break image into 9 vertical layers since image height is 720
     margin = 25  # How much to slide left and right for searching
     smoothing_factor = 15  # Use last 15 results for averaging - smooth the data
-    y_scale = 10.0/720.0  # 10 meter is around 720 pixels
-    x_scale = 4.0/384.0  # 4 meters is around 384pixels
+    #  the lane is about 30 meters long and 3.7 meters wide
+    y_scale = 30.0/720.0  # 30 meter is around 720 pixels
+    x_scale = 3.7/700.0  # 3.7 meters is around 700pixels
 
     # Setup the overall class to do all the tracking
 
@@ -554,6 +557,8 @@ def pipeline(img, checkpoint=None):
             side_pos = "right"
 
         # draw the text showing curvature, offset and speed
+        # can check the values with
+        # http://onlinemanuals.txdot.gov/txdotmanuals/rdw/horizontal_alignment.htm#BGBHGEGC
         cv2.putText(output, 'Radius of Curvature = ' + str(round(curverad, 3)) + '(m)', (50, 50),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         cv2.putText(output, 'Vehicle is = ' + str(abs(round(center_diff, 3))) + 'm ' + side_pos + ' of center',
@@ -561,89 +566,6 @@ def pipeline(img, checkpoint=None):
 
     else:
         output = img
-
-    return output
-
-
-def pipeline2(img, checkpoint=None):
-
-    # Get the calibration parameters
-    calibration_pickle = pickle.load(open('calibration.p', 'rb'))
-    mtx = calibration_pickle['mtx']
-    dist = calibration_pickle['dist']
-
-    # Undistort the image based on calibration data
-    img = cv2.undistort(img, mtx, dist, None, mtx)
-
-    if checkpoint == 'undistorted':
-        return img
-
-    # Apply some thresholding methods
-    gradx = abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(12, 255))
-    grady = abs_sobel_thresh(img, orient='y', sobel_kernel=3, thresh=(25, 255))
-    # gradmag = mag_thresh(img, sobel_kernel=9, thresh=(30, 100))
-    # graddir = dir_threshold(img, sobel_kernel=9, thresh=(0.7, 1.3))
-
-    sthresh = hls_select(img, 's', thresh=(100, 255))
-    vthresh = hsv_select(img, 'v', thresh=(50, 255))
-
-    # Get the combined binary
-    combined = np.zeros_like(gradx)
-    combined[(gradx == 1) & (grady == 1) |
-             ((sthresh == 1) & (vthresh == 1))] = 255
-
-    if checkpoint == 'thresholding':
-        return combined
-
-    # Apply perspective Transform
-
-    # First video
-    # box_width = 0.76
-    # mid_width = 0.08
-    # height_pct = 0.62
-    # bottom_trim = 0.935
-
-    # Second video
-    box_width = 0.76
-    mid_width = 0.08
-    height_pct = 0.62
-    bottom_trim = 0.935
-
-    src = np.float32([[img.shape[1] * (.5 - mid_width / 2), img.shape[0] * height_pct],
-                      [img.shape[1] * (.5 + mid_width / 2), img.shape[0] * height_pct],
-                      [img.shape[1] * (.5 + box_width / 2), img.shape[0] * bottom_trim],
-                      [img.shape[1] * (.5 - box_width / 2), img.shape[0] * bottom_trim]])
-
-    # offset adjusts the shrinkage of the warped image - larger is shrunken more
-    offset = img.shape[1] * 0.25
-
-    dst = np.float32([[offset, 0],
-                      [img.shape[1] - offset, 0],
-                      [img.shape[1] - offset, img.shape[0]],
-                      [offset, img.shape[0]]])
-
-    # Get perspective transformation matrix and its inverse for later use
-    mat = cv2.getPerspectiveTransform(src, dst)
-    mat_inv = cv2.getPerspectiveTransform(dst, src)
-
-    if checkpoint == 'straight_warped':
-
-        # Use the matrix for perspective transform
-        warped = cv2.warpPerspective(img, mat, (img.shape[1], img.shape[0]),
-                                     flags=cv2.INTER_LINEAR)
-
-        return warped, src
-
-    # Use the matrix for perspective transform
-    binary_warped = cv2.warpPerspective(combined, mat, (img.shape[1], img.shape[0]),
-                                        flags=cv2.INTER_LINEAR)
-
-    if checkpoint == 'warped':
-
-        return binary_warped
-
-
-    # apply
 
     return output
 

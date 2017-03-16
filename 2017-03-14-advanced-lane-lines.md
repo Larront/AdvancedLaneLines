@@ -41,7 +41,7 @@ Finding lane lines in camera images can be more involved than you think. This po
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 
-You can find the full code, images and videos in this **[REPO](https://github.com/cmlpr/behavioral-cloning)**. The summary of the files and folders int repo is provided in the table below:
+You can find the full code, images and videos in this **[REPO](https://github.com/cmlpr/AdvancedLaneLines)**. The summary of the files and folders int repo is provided in the table below:
 
 | File/Folder      | Definition                                                                         |
 | :--------------- | :----------------------------------------------------------------------------------|
@@ -261,8 +261,8 @@ The class is initialized in the main `pipeline` function in `flib.py` at line 42
 | window_height      | 80            |
 | margin             | 25            |
 | smoothing_factor   | 15            |
-| y_scale            | 10./720       |
-| x_scale            | 4./384        |
+| y_scale            | 30./720       |
+| x_scale            | 3.7/700       |
 |                    |               |
 
 `y_scale` and `x_scale` are the values to convert pixel values into real world meters. x_scale depends on the `offset` value used in the perspective transformation. 
@@ -365,7 +365,7 @@ The output video.
 
 <div class="post_videoWrapper">
     <!-- Copy & Pasted from YouTube -->
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/wKneJk9L_Jg" frameborder="0" allowfullscreen></iframe>
+    <iframe src="https://www.youtube.com/embed/KX546vk4dDM" frameborder="0" allowfullscreen></iframe>
 </div>
 
 ---
